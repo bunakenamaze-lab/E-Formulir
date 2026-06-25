@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import RoleGuard from '@/components/auth/RoleGuard';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
 // Pages
@@ -27,26 +28,84 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Public routes */}
+            {/* ─── Public Routes ─── */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/f/:slug" element={<PublicFormPage />} />
             <Route path="/f/:slug/success" element={<FormSuccessPage />} />
 
-            {/* Protected routes */}
+            {/* ─── Protected Routes ─── */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+                {/* Dashboard — semua role */}
                 <Route path="/dashboard" element={<DashboardPage />} />
+
+                {/* Formulir — semua role (operator hanya lihat) */}
                 <Route path="/forms" element={<FormsListPage />} />
-                <Route path="/forms/new" element={<FormBuilderPage />} />
-                <Route path="/forms/:id/edit" element={<FormBuilderPage />} />
                 <Route path="/forms/:id" element={<FormDetailPage />} />
                 <Route path="/forms/:id/responses" element={<FormResponsesPage />} />
-                <Route path="/templates" element={<TemplatesPage />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+
+                {/* Builder — Admin & Super Admin */}
+                <Route
+                  path="/forms/new"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
+                      <FormBuilderPage />
+                    </RoleGuard>
+                  }
+                />
+                <Route
+                  path="/forms/:id/edit"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
+                      <FormBuilderPage />
+                    </RoleGuard>
+                  }
+                />
+
+                {/* Template — Admin & Super Admin */}
+                <Route
+                  path="/templates"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN', 'ADMIN']}>
+                      <TemplatesPage />
+                    </RoleGuard>
+                  }
+                />
+
+                {/* Users — Super Admin only */}
+                <Route
+                  path="/users"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN']}>
+                      <UsersPage />
+                    </RoleGuard>
+                  }
+                />
+
+                {/* Audit Log — Super Admin only */}
+                <Route
+                  path="/audit"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN']}>
+                      <AuditLogPage />
+                    </RoleGuard>
+                  }
+                />
+
+                {/* Settings — Super Admin only */}
+                <Route
+                  path="/settings"
+                  element={
+                    <RoleGuard roles={['SUPER_ADMIN']}>
+                      <SettingsPage />
+                    </RoleGuard>
+                  }
+                />
+
+                {/* Profil — semua role */}
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/audit" element={<AuditLogPage />} />
               </Route>
             </Route>
 

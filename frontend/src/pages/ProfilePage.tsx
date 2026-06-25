@@ -151,17 +151,17 @@ export default function ProfilePage() {
             <div className="space-y-1.5">
               <Label>Password Saat Ini</Label>
               <Input {...reg2('currentPassword')} type="password" placeholder="Masukkan password saat ini" />
-              {e2.currentPassword && <p className="text-xs text-red-500">{e2.currentPassword.message}</p>}
+              {e2.currentPassword && <p className="text-xs text-red-500">{e2.currentPassword.message as string}</p>}
             </div>
             <div className="space-y-1.5">
               <Label>Password Baru</Label>
               <Input {...reg2('newPassword')} type="password" placeholder="Minimal 8 karakter" />
-              {e2.newPassword && <p className="text-xs text-red-500">{e2.newPassword.message}</p>}
+              {e2.newPassword && <p className="text-xs text-red-500">{e2.newPassword.message as string}</p>}
             </div>
             <div className="space-y-1.5">
               <Label>Konfirmasi Password Baru</Label>
               <Input {...reg2('confirmPassword')} type="password" placeholder="Ulangi password baru" />
-              {e2.confirmPassword && <p className="text-xs text-red-500">{e2.confirmPassword.message}</p>}
+              {e2.confirmPassword && <p className="text-xs text-red-500">{e2.confirmPassword.message as string}</p>}
             </div>
             <Button
               type="submit"

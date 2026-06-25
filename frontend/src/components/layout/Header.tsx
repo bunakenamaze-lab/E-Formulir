@@ -1,20 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Menu, Sun, Moon, Bell, Search, LogOut, User, Settings, ChevronDown,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+  Menu, Sun, Moon, Search, LogOut, User, Settings, ChevronDown,
+} from 'lucide-react';import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 import { useLogout } from '@/hooks/useAuth';
-import { useNotifications } from '@/hooks/useNotifications';
+import NotificationPanel from '@/components/shared/NotificationPanel';
 import { cn, getInitials } from '@/lib/utils';
 
 interface HeaderProps {
@@ -29,9 +27,6 @@ export default function Header({ sidebarOpen, onSidebarToggle, onMobileMenuToggl
   const logout = useLogout();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
-
-  const { data: notifData } = useNotifications();
-  const unreadCount = notifData?.data?.unreadCount || 0;
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-4 gap-4">
@@ -106,19 +101,7 @@ export default function Header({ sidebarOpen, onSidebarToggle, onMobileMenuToggl
         </Button>
 
         {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 relative"
-          onClick={() => navigate('/dashboard')}
-        >
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-nu-700 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Button>
+        <NotificationPanel />
 
         {/* User menu */}
         <DropdownMenu>

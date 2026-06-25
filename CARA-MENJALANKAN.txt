@@ -1,0 +1,95 @@
+============================================================
+  SISTEM FORMULIR DIGITAL - PCNU KOTA BANDUNG
+  Panduan Cepat Menjalankan Aplikasi
+============================================================
+
+STATUS INSTALASI:
+  ✅ Backend dependencies  : TERINSTALL
+  ✅ Frontend dependencies : TERINSTALL
+  ✅ Backend TypeScript    : VALID (0 error)
+  ✅ Frontend TypeScript   : VALID (0 error)
+  ✅ Frontend Build        : BERHASIL (3608 modules)
+  ✅ Backend Server        : BERJALAN (Health check OK)
+
+------------------------------------------------------------
+LANGKAH 1: SETUP DATABASE
+------------------------------------------------------------
+
+1. Pastikan MySQL sudah berjalan
+2. Buat database:
+   mysql -u root -p -e "CREATE DATABASE pcnu_forms;"
+
+3. Edit file: backend\.env
+   Ubah baris DATABASE_URL menjadi:
+   DATABASE_URL="mysql://root:PASSWORD@localhost:3306/pcnu_forms"
+   (Ganti PASSWORD dengan password MySQL Anda)
+
+4. Jalankan migrasi:
+   cd backend
+   npx prisma migrate dev --name init
+
+5. Isi data awal:
+   npm run prisma:seed
+
+------------------------------------------------------------
+LANGKAH 2: JALANKAN APLIKASI
+------------------------------------------------------------
+
+Cara 1 - Otomatis (klik dua kali):
+   dev.bat
+
+Cara 2 - Manual di 2 terminal terpisah:
+
+  Terminal 1 (Backend):
+    cd backend
+    npm run dev
+    → Berjalan di: http://localhost:3000
+
+  Terminal 2 (Frontend):
+    cd frontend
+    npm run dev
+    → Berjalan di: http://localhost:5173
+
+------------------------------------------------------------
+LANGKAH 3: AKSES APLIKASI
+------------------------------------------------------------
+
+Buka browser: http://localhost:5173
+
+Login dengan salah satu akun:
+  Super Admin : superadmin@pcnubandung.or.id / SuperAdmin123!
+  Admin       : admin@pcnubandung.or.id / Admin123!
+  Operator    : operator@pcnubandung.or.id / Operator123!
+
+------------------------------------------------------------
+FITUR YANG TERSEDIA
+------------------------------------------------------------
+
+1. Dashboard       - Statistik & grafik real-time
+2. Form Builder    - Drag & drop dengan 20+ tipe field
+3. Template        - 4 template siap pakai
+4. Manajemen Respon- Lihat, filter, hapus, export
+5. Export Data     - Excel (.xlsx) dan CSV
+6. QR Code         - Generate & download QR Code
+7. Share Link      - Salin link formulir
+8. Pengguna        - Kelola Super Admin/Admin/Operator
+9. Audit Log       - Riwayat aktivitas
+10. Pengaturan     - Konfigurasi organisasi
+
+------------------------------------------------------------
+TROUBLESHOOTING
+------------------------------------------------------------
+
+Backend error "Cannot connect to database":
+→ Periksa MySQL sudah berjalan
+→ Periksa DATABASE_URL di backend/.env
+
+Frontend tidak bisa load:
+→ Pastikan backend berjalan di port 3000
+→ Periksa VITE_API_URL di frontend/.env
+
+Error saat seed:
+→ Pastikan migrasi sudah dijalankan dulu
+→ npx prisma migrate dev --name init
+
+============================================================

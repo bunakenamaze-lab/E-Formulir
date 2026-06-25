@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useForm } from '@/hooks/useForms';
+import { useExport } from '@/hooks/useExport';
 import { formatDateTime, formatDuration, cn } from '@/lib/utils';
 import type { FormResponse } from '@/types';
 
@@ -36,6 +37,7 @@ export default function FormResponsesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: form } = useForm(id!);
+  const { exportFile } = useExport();
 
   const { data: responsesData, isLoading } = useQuery({
     queryKey: ['responses', id, page, search],
@@ -68,27 +70,7 @@ export default function FormResponsesPage() {
   });
 
   const handleExport = async (format: 'excel' | 'csv') => {
-    const url = `/api/export/${id}/${format}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `respon-${form?.slug || id}-${Date.now()}.${format === 'excel' ? 'xlsx' : 'csv'}`;
-
-    // Add authorization header via fetch
-    const token = localStorage.getItem('pcnu-auth') ?
-      JSON.parse(localStorage.getItem('pcnu-auth')!).state?.accessToken : null;
-
-    if (token) {
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      link.href = objectUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(objectUrl);
-    }
+    await exportFile(id!, format, form?.title);
   };
 
   const responses: FormResponse[] = responsesData?.data || [];

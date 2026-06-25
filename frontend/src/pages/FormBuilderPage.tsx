@@ -6,13 +6,13 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy,
+  SortableContext, verticalListSortingStrategy,
   useSortable, arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
   Save, Eye, Globe, ArrowLeft, Settings2, GripVertical, Plus,
-  Trash2, Loader2, ChevronRight, X,
+  Trash2, Loader2,
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
