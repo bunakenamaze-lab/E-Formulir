@@ -1,0 +1,266 @@
+// Prisma Schema for PCNU Form Builder
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  OPERATOR
+}
+
+enum FormStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  EMAIL
+  PHONE
+  DATE
+  TIME
+  DROPDOWN
+  RADIO
+  CHECKBOX
+  MULTIPLE_CHOICE
+  FILE_UPLOAD
+  IMAGE_UPLOAD
+  SIGNATURE
+  LOCATION
+  RATING
+  MATRIX
+  SECTION_DIVIDER
+  HEADING
+  DESCRIPTION
+}
+
+enum LogAction {
+  LOGIN
+  LOGOUT
+  CREATE_FORM
+  UPDATE_FORM
+  DELETE_FORM
+  PUBLISH_FORM
+  CREATE_RESPONSE
+  UPDATE_RESPONSE
+  DELETE_RESPONSE
+  CREATE_USER
+  UPDATE_USER
+  DELETE_USER
+  EXPORT_DATA
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(OPERATOR)
+  avatar    String?
+  isActive  Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  forms         Form[]
+  responses     Response[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Form {
+  id          String     @id @default(uuid())
+  title       String
+  description String?    @db.Text
+  slug        String     @unique
+  status      FormStatus @default(DRAFT)
+  
+  // Settings
+  settings    Json       // { allowMultiple, showProgress, requireAuth, autoSave, etc }
+  
+  // Styling
+  theme       Json?      // { primaryColor, backgroundColor, fontFamily, etc }
+  
+  // Analytics
+  viewCount   Int        @default(0)
+  
+  // Metadata
+  isTemplate  Boolean    @default(false)
+  category    String?
+  tags        String?    @db.Text
+  
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  publishedAt DateTime?
+  closedAt    DateTime?
+
+  fields      Field[]
+  responses   Response[]
+  
+  @@index([slug])
+  @@index([status])
+  @@index([createdById])
+  @@index([isTemplate])
+  @@map("forms")
+}
+
+model Field {
+  id          String    @id @default(uuid())
+  formId      String
+  form        Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  type        FieldType
+  label       String
+  placeholder String?
+  helpText    String?   @db.Text
+  
+  // Configuration
+  config      Json      // { required, validation, options, defaultValue, etc }
+  
+  // Conditional Logic
+  conditional Json?     // { showIf: { fieldId, operator, value } }
+  
+  // Position
+  order       Int
+  section     String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  answers     Answer[]
+  
+  @@index([formId])
+  @@index([order])
+  @@map("fields")
+}
+
+model Response {
+  id              String   @id @default(uuid())
+  formId          String
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  respondentEmail String?
+  respondentName  String?
+  
+  // User if authenticated
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Status
+  isCompleted     Boolean  @default(false)
+  isDraft         Boolean  @default(false)
+  
+  // Metadata
+  ipAddress       String?
+  userAgent       String?  @db.Text
+  location        Json?    // { country, city, lat, lng }
+  
+  // Time tracking
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  timeSpent       Int?     // in seconds
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  answers         Answer[]
+  
+  @@index([formId])
+  @@index([userId])
+  @@index([isCompleted])
+  @@index([createdAt])
+  @@map("responses")
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  
+  fieldId    String
+  field      Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  
+  // Answer value can be string, number, array, or file path
+  value      Json
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([responseId])
+  @@index([fieldId])
+  @@map("answers")
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action      LogAction
+  entity      String    // Form, Response, User, etc
+  entityId    String?
+  
+  details     Json?     // Additional details about the action
+  ipAddress   String?
+  userAgent   String?   @db.Text
+  
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String   @db.Text
+  type      String   // info, success, warning, error
+  
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  
+  link      String?
+  metadata  Json?
+  
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
