@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # ── MySQL Database ─────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: pcnu_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-pcnu_root_2024}
+      MYSQL_DATABASE: pcnu_forms
+      MYSQL_USER: ${DB_USER:-pcnu_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-pcnu_pass_2024}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pcnu_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── PCNU Form Builder App (Frontend + Backend) ────────────────────────────
+  app:
+    build: .
+    container_name: pcnu_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      DATABASE_URL: mysql://${DB_USER:-pcnu_user}:${DB_PASSWORD:-pcnu_pass_2024}@db:3306/pcnu_forms
+      JWT_SECRET: ${JWT_SECRET:-ganti-secret-ini-di-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-ganti-refresh-secret-ini}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      MAX_FILE_SIZE: 10485760
+      UPLOAD_DIR: ./uploads
+      FULLSTACK: "true"
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pcnu_network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+  uploads_data:
+  logs_data:
+
+networks:
+  pcnu_network:
+    driver: bridge
